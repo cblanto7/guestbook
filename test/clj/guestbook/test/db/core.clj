@@ -23,19 +23,20 @@
     (migrations/migrate ["migrate"] (select-keys env [:database-url]))
     (f)))
 
-(deftest test-messages
+((deftest test-message
   (jdbc/with-db-transaction [t-conn *db*]
     (jdbc/db-set-rollback-only! t-conn)
-    (let [timestamp (java.util.Date.)]
+    (let [timestamp (org.joda.time.DateTime. org.joda.time.DateTimeZone/UTC)]
       (is (= 1 (db/save-message!
-                 t-conn
-                 {:name "Bob"
-                  :message   "Hello, World"
-                  :timestamp timestamp}
-                 {:connection t-conn})))
+                t-conn
+                {:name "Bob"
+                 :message "Hello, World"
+                 :timestamp timestamp}
+                {:connection t-conn})))
       (is (=
-            {:name "Bob"
-             :message "Hello, World"}
-            (-> (db/get-messages t-conn {})
-                (first)
-                (select-keys [:name :message])))))))
+           {:name "Bob"
+            :message "Hello, World"
+            :timestamp timestamp}
+           (-> (db/get-messages t-conn {})
+               (first)
+               (select-keys [:name :message :timestamp])))))))
